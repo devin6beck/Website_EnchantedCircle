@@ -1,0 +1,7 @@
+# Design source files and exports: large, kept locally, not published with the site
+*.ai
+Website Edits*.pdf
+Website_wirefram_ECHC_Folder*/
+
+# Local editor/agent settings
+.claude/
