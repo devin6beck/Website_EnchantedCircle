@@ -108,7 +108,12 @@
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-visible');
+        var el = entry.target;
+        el.classList.add('is-visible');
+        /* Drop the stagger once shown, so hover effects respond immediately. */
+        if (el.style.transitionDelay) {
+          setTimeout(function () { el.style.transitionDelay = ''; }, 800 + (parseFloat(el.style.transitionDelay) || 0) + 100);
+        }
         observer.unobserve(entry.target);
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
