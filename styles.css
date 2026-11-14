@@ -435,6 +435,7 @@ body{color:var(--blue);font-family:var(--sans)}
 .reviews-dots[hidden]{display:none}
 /* Gentle fade-in (added by site.js only when motion is allowed) */
 .reveal{opacity:0;translate:0 18px;transition:opacity .8s ease,translate .8s ease}
+.care-squares>a.reveal{transition:opacity .8s ease,translate .8s ease,background-color .2s}
 .reveal.is-visible{opacity:1;translate:0 0}
 @media(prefers-reduced-motion:reduce){
   .reveal{opacity:1;translate:none;transition:none}
