@@ -35,16 +35,93 @@
       return card.getBoundingClientRect().width + gap;
     }
     function atEnd() { return track.scrollLeft + track.clientWidth >= track.scrollWidth - 4; }
-    function update() { if (prev) prev.hidden = track.scrollLeft <= 4; }
+
+    /* One dot per scroll position: 6 reviews with 2 visible gives 5 dots. */
+    var cards = track.querySelectorAll('.review');
+    var dotsBox = document.createElement('div');
+    dotsBox.className = 'reviews-dots';
+    dotsBox.setAttribute('role', 'group');
+    dotsBox.setAttribute('aria-label', 'Choose reviews to show');
+    carousel.querySelector('.reviews-controls').prepend(dotsBox);
+    var dots = [];
+
+    function positions() {
+      var visible = Math.max(1, Math.round(track.clientWidth / step()));
+      return Math.max(1, cards.length - visible + 1);
+    }
+    function current() {
+      return atEnd() ? dots.length - 1 : Math.round(track.scrollLeft / step());
+    }
+    function buildDots() {
+      var count = positions();
+      if (count === dots.length) return;
+      dotsBox.textContent = '';
+      dots = [];
+      for (var i = 0; i < count; i++) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'reviews-dot';
+        dot.setAttribute('aria-label', 'Show review ' + (i + 1) + ' of ' + cards.length);
+        dot.addEventListener('click', (function (index) {
+          return function () { track.scrollTo({ left: index * step() }); mark(index); };
+        })(i));
+        dotsBox.appendChild(dot);
+        dots.push(dot);
+      }
+      dotsBox.hidden = count < 2;
+    }
+    function mark(active) {
+      dots.forEach(function (dot, i) {
+        if (i === active) dot.setAttribute('aria-current', 'true');
+        else dot.removeAttribute('aria-current');
+      });
+      if (prev) prev.hidden = active === 0;
+    }
+    function update() {
+      mark(current());
+      if (prev) prev.hidden = track.scrollLeft <= 4;
+    }
 
     next.addEventListener('click', function () {
-      if (atEnd()) track.scrollTo({ left: 0 });
-      else track.scrollBy({ left: step() });
+      if (atEnd()) { track.scrollTo({ left: 0 }); mark(0); }
+      else { var target = Math.min(current() + 1, dots.length - 1); track.scrollBy({ left: step() }); mark(target); }
     });
-    if (prev) prev.addEventListener('click', function () { track.scrollBy({ left: -step() }); });
+    if (prev) prev.addEventListener('click', function () {
+      var target = Math.max(current() - 1, 0);
+      track.scrollBy({ left: -step() });
+      mark(target);
+    });
     track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', function () { buildDots(); update(); });
+    buildDots();
     update();
   });
+
+  /* ---------- Gentle fade-in as sections scroll into view ---------- */
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    var targets = document.querySelectorAll(
+      '.comfort-copy, .comfort-art, .care-squares > a, .moment > *, .people-art, .people-copy, ' +
+      '.reviews-intro, .reviews-carousel, .walkthrough > h2, .walkthrough-lede, .walkthrough > .button, .walkthrough-list > li, ' +
+      'main > section:not(.hero):not(.page-hero) > h2, .service-row, .faq-list article, .story-inner, .split-cta > div'
+    );
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+
+    targets.forEach(function (el) {
+      /* Leave anything already on screen at load alone, so nothing flashes. */
+      if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
+      el.classList.add('reveal');
+      var siblings = el.parentElement ? Array.prototype.indexOf.call(el.parentElement.children, el) : 0;
+      if (el.matches('.care-squares > a, .walkthrough-list > li')) el.style.transitionDelay = (siblings * 90) + 'ms';
+      observer.observe(el);
+    });
+  }
 
   /* ---------- Join our circle ---------- */
   var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
