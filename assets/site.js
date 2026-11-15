@@ -103,7 +103,8 @@
     var targets = document.querySelectorAll(
       '.comfort-copy, .comfort-art, .care-squares > a, .moment > *, .people-art, .people-copy, ' +
       '.reviews-intro, .reviews-carousel, .walkthrough > h2, .walkthrough-lede, .walkthrough > .button, .walkthrough-list > li, ' +
-      'main > section:not(.hero):not(.page-hero) > h2, .service-row, .faq-list article, .story-inner, .split-cta > div'
+      'main > section:not(.hero):not(.page-hero) > h2, .service-row, .faq-list article, .story-inner, .split-cta > div, ' +
+      '.faq-card article, .story-gallery-row > img, .about-quote-inner > *, .extra-copy'
     );
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -123,7 +124,7 @@
       if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
       el.classList.add('reveal');
       var siblings = el.parentElement ? Array.prototype.indexOf.call(el.parentElement.children, el) : 0;
-      if (el.matches('.care-squares > a, .walkthrough-list > li')) el.style.transitionDelay = (siblings * 90) + 'ms';
+      if (el.matches('.care-squares > a, .walkthrough-list > li, .story-gallery-row > img')) el.style.transitionDelay = (siblings * 90) + 'ms';
       observer.observe(el);
     });
   }
